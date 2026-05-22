@@ -1,246 +1,97 @@
-# 🚀 Sistema de Gestão Acadêmica — PostgreSQL
+# Sistema de Gestão Acadêmica (SGBD: PostgreSQL)
 
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue?style=for-the-badge&logo=postgresql)
-![SQL](https://img.shields.io/badge/SQL-Queries-orange?style=for-the-badge)
-![Status](https://img.shields.io/badge/status-em%20desenvolvimento-green?style=for-the-badge)
+Este repositório contém a especificação física, carga de dados de teste e consultas estruturadas para o ecossistema de banco de dados relacional de um **Sistema de Gestão Acadêmica**, desenvolvido como projeto prático para a disciplina de Banco de Dados.
 
----
-
-# 📚 Sobre o Projeto
-
-Este projeto consiste em um sistema de **Gestão Acadêmica** desenvolvido utilizando **PostgreSQL**, com o objetivo de aplicar na prática conceitos de modelagem de banco de dados relacional, manipulação de dados e consultas SQL.
-
-O sistema realiza o gerenciamento de:
-
-- 👨‍🎓 Alunos
-- 👨‍🏫 Professores
-- 📖 Cursos
-- 📝 Disciplinas
-- 🏫 Turmas
-- 📋 Matrículas
-
-O projeto foi desenvolvido como atividade prática da disciplina de Banco de Dados.
+## 👥 Integrantes do Grupo
+* **Tarciso Ferreira Da Silva Neto**
+* **Vinicius Lopes Rodrigues**
+* **Matheus Gabriel Cândido de Souza**
+* **Paulo Eduardo Peres**
+* **Guilherme David Sena**
+* **Daniel José Marques Carvalho**
+* **Ycaro Agrielle Martiniano Nobre de Lacerda**
 
 ---
 
-# 🛠️ Tecnologias Utilizadas
-
-- 🐘 PostgreSQL
-- SQL
-- pgAdmin
-- Git & GitHub
-
----
-
-# 🧠 Conceitos Aplicados
-
-✔️ CREATE DATABASE  
-✔️ CREATE TABLE  
-✔️ INSERT INTO  
-✔️ UPDATE  
-✔️ DELETE  
-✔️ SELECT  
-✔️ INNER JOIN  
-✔️ LEFT JOIN  
-✔️ GROUP BY  
-✔️ HAVING  
-✔️ SUBQUERY  
-✔️ CASE  
-✔️ Constraints  
-✔️ Chaves Primárias e Estrangeiras  
-✔️ Relacionamentos Relacionais  
+## 🎓 Informações Acadêmicas
+* **Instituição:** Estácio
+* **Disciplina:** Banco de Dados
+* **Professor Orientador:** Lucas Clóvis
+* **Abordagem Técnica:** Engenharia de Dados de Missão Crítica e Integridade Referencial Estrita
 
 ---
 
-# 🗂️ Estrutura do Projeto
+## 🏗️ Arquitetura do Banco de Dados
 
-```bash
-📦 sistema-gestao-academica
- ┣ 📂 sql
- ┃ ┣ 📜 schema.sql
- ┃ ┣ 📜 inserts.sql
- ┃ ┣ 📜 updates.sql
- ┃ ┣ 📜 deletes.sql
- ┃ ┣ 📜 queries.sql
- ┃ ┣ 📜 views.sql
- ┃ ┗ 📜 triggers.sql
- ┣ 📂 docs
- ┃ ┗ 📜 DER.png
- ┣ 📜 README.md
- ┗ 📜 LICENSE
-```
+O modelo lógico foi projetado seguindo os princípios de **Clean Architecture** aplicados a dados e **Separation of Concerns (SoC)**, garantindo o isolamento de domínios e eliminando estados inconsistentes ou dados órfãos em ambiente de produção.
 
----
+O ecossistema é composto por 6 entidades principais organizadas de forma relacional:
 
-# 🏗️ Estrutura do Banco
+* **Cursos**: Entidade independente que gerencia as grades curriculares.
+* **Disciplinas**: Depende obrigatoriamente de um curso (`NOT NULL`).
+* **Professores**: Cadastro do corpo docente e suas respectivas especialidades.
+* **Turmas**: Tabela de associação intermediária ligando disciplinas e professores.
+* **Alunos**: Registro de discentes com índice único para CPF.
+* **Matrículas**: Relacionamento muitos-para-muitos entre alunos e turmas com controle estrito de estado (`CHECK`).
 
-## 👨‍🎓 alunos
-
-Tabela responsável pelo armazenamento dos alunos cadastrados.
-
-| Campo | Tipo |
-|---|---|
-| id_aluno | SERIAL |
-| nome | VARCHAR |
-| cpf | VARCHAR |
-| email | VARCHAR |
-| data_nascimento | DATE |
+### Decisões Arquiteturais e Resiliência
+1. **Acoplamento Estrito via `NOT NULL`:** Todas as chaves estrangeiras (`FK`) foram declaradas explicitamente como `NOT NULL`. Isso impede anomalias comuns em sistemas legados, como turmas sem professores associados ou disciplinas vinculadas a cursos inexistentes.
+2. **Constraints Nomeadas:** Restrições de integridade referencial utilizam a sintaxe `CONSTRAINT nome_da_constraint`. Esta abordagem garante uma observabilidade eficiente: caso ocorra uma falha de violação de dados em camadas de aplicação (Backend), os logs do SGBD retornarão o nome exato da regra de negócio violada.
+3. **Domínio de Estados (`CHECK`):** A tabela de matrículas possui validação estrita de estado no motor do banco de dados, aceitando exclusivamente os valores `Ativo`, `Trancado` ou `Concluído`.
 
 ---
 
-## 👨‍🏫 professores
+## 📊 Estrutura das Tabelas (DDL)
 
-| Campo | Tipo |
-|---|---|
-| id_professor | SERIAL |
-| nome | VARCHAR |
-| especialidade | VARCHAR |
-| email | VARCHAR |
-
----
-
-## 📖 cursos
-
-| Campo | Tipo |
-|---|---|
-| id_curso | SERIAL |
-| nome_curso | VARCHAR |
-| carga_horaria | INTEGER |
-
----
-
-## 📝 disciplinas
-
-| Campo | Tipo |
-|---|---|
-| id_disciplina | SERIAL |
-| nome_disciplina | VARCHAR |
-| carga_horaria | INTEGER |
-| id_curso | INTEGER |
-
----
-
-## 🏫 turmas
-
-| Campo | Tipo |
-|---|---|
-| id_turma | SERIAL |
-| semestre | VARCHAR |
-| turno | VARCHAR |
-| id_disciplina | INTEGER |
-| id_professor | INTEGER |
-
----
-
-## 📋 matriculas
-
-| Campo | Tipo |
-|---|---|
-| id_matricula | SERIAL |
-| id_aluno | INTEGER |
-| id_turma | INTEGER |
-| data_matricula | DATE |
-| status | VARCHAR |
-
----
-
-# 🔗 Relacionamentos
-
-- disciplinas → cursos
-- turmas → disciplinas
-- turmas → professores
-- matriculas → alunos
-- matriculas → turmas
-
----
-
-# ⚙️ Como Executar
-
-## 1️⃣ Clone o repositório
-
-```bash
-git clone https://github.com/seuusuario/sistema-gestao-academica.git
-```
-
----
-
-## 2️⃣ Crie o banco de dados
+O esquema do banco de dados é gerado a partir do seguinte fluxo estrutural:
 
 ```sql
-CREATE DATABASE gestao_academica;
-```
+CREATE TABLE cursos (
+    id_curso SERIAL PRIMARY KEY,
+    nome_curso VARCHAR(100) NOT NULL,
+    carga_horaria INTEGER NOT NULL
+);
 
----
+CREATE TABLE disciplinas (
+    id_disciplina SERIAL PRIMARY KEY,
+    nome_disciplina VARCHAR(100) NOT NULL,
+    carga_horaria INTEGER NOT NULL,
+    id_curso INTEGER NOT NULL,
+    CONSTRAINT fk_disciplinas_cursos FOREIGN KEY (id_curso) REFERENCES cursos(id_curso)
+);
 
-## 3️⃣ Execute os scripts SQL
+CREATE TABLE alunos (
+    id_aluno SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cpf CHAR(11) UNIQUE NOT NULL,
+    email VARCHAR(100),
+    data_nascimento DATE
+);
 
-Ordem recomendada:
+CREATE TABLE professores (
+    id_professor SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    especialidade VARCHAR(100),
+    email VARCHAR(100)
+);
 
-```bash
-schema.sql
-inserts.sql
-updates.sql
-deletes.sql
-queries.sql
-```
+CREATE TABLE turmas (
+    id_turma SERIAL PRIMARY KEY,
+    semestre VARCHAR(10) NOT NULL,
+    turno VARCHAR(20) NOT NULL,
+    id_disciplina INTEGER NOT NULL,
+    id_professor INTEGER NOT NULL,
+    CONSTRAINT fk_turmas_disciplinas FOREIGN KEY (id_disciplina) REFERENCES disciplinas(id_disciplina),
+    CONSTRAINT fk_turmas_professores FOREIGN KEY (id_professor) REFERENCES professores(id_professor)
+);
 
----
-
-# 🔎 Exemplos de Consultas
-
-## 📌 Listar todos os alunos
-
-```sql
-SELECT * FROM alunos;
-```
-
----
-
-## 📌 Disciplinas ordenadas por nome
-
-```sql
-SELECT * 
-FROM disciplinas
-ORDER BY nome_disciplina;
-```
-
----
-
-## 📌 Quantidade de alunos por turma
-
-```sql
-SELECT 
-    t.id_turma,
-    COUNT(m.id_aluno) AS quantidade_alunos
-FROM turmas t
-LEFT JOIN matriculas m 
-ON t.id_turma = m.id_turma
-GROUP BY t.id_turma;
-```
-
----
-
-# 🚀 Funcionalidades Extras
-
-- Views
-- Índices
-- Triggers
-- Procedures
-- Functions
-- Constraints adicionais
-
----
-
-# 👨‍💻 Autor
-
-## Ycaro Agrielle Martiniano Nobre de Lacerda
-
-🎓 Estudante de Análise e Desenvolvimento de Sistemas  
-📍 Recife - PE  
-💻 Focado em PostgreSQL, Banco de Dados e Back-end
-
----
-
-# 📜 Licença
-
-Este projeto está sob a licença MIT.
+CREATE TABLE matriculas (
+    id_matricula SERIAL PRIMARY KEY,
+    id_aluno INTEGER NOT NULL,
+    id_turma INTEGER NOT NULL,
+    data_matricula DATE DEFAULT CURRENT_DATE NOT NULL,
+    status VARCHAR(20) DEFAULT 'Ativo' NOT NULL,
+    CONSTRAINT fk_matriculas_alunos FOREIGN KEY (id_aluno) REFERENCES alunos(id_aluno),
+    CONSTRAINT fk_matriculas_turmas FOREIGN KEY (id_turma) REFERENCES turmas(id_turma),
+    CONSTRAINT chk_matriculas_status CHECK (status IN ('Ativo', 'Trancado', 'Concluído'))
+);
